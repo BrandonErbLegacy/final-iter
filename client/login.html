@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="stylesheet" href="./node_modules/bootstrap/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="./css/bootstrap.min.css">
+    <title><<Name>></title>
+
+  </head>
+  <body>
+    <div class="container jumbotron">
+      <div class="row">
+        <div class="col-12">
+          <h2><<~Name~>></h2>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-12">
+          <label for='username-field'>Username: </label><input type="text" placeholder="username" id="username-field" class="form-control" />
+        </div>
+        <div class="col-12">
+          <label for='username-field'>Password: </label><input type="password" placeholder="password" id="password-field" class="form-control"/>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-12">
+          <input type="submit" value="Login" class="form-control btn btn-primary" id="login-button"/>
+        </div>
+      </div>
+    </div>
+    <script>
+      var manager = require("./js/renderer");
+      manager.inits.login();
+    </script>
+  </body>
+</html>

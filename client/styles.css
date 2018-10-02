@@ -1,0 +1,135 @@
+/*
+ * Generic styles
+ */
+
+ body {
+   background-color: #154966;
+   color: #CCC;
+ }
+
+ .centered-text {
+   text-align: center;
+ }
+
+.right-align {
+  float: right;
+}
+
+/*
+ * Tab styles
+ */
+.tab-frame-div {
+
+}
+.tab-frame {
+  background-color: #154966;
+  margin: 5px;
+}
+.inactive-tab {
+  display: none;
+}
+.tab-button-div {
+  background-color: #001725;
+}
+.tab-button {
+  padding: 10px;
+  padding-left: 15px;
+  padding-right: 15px;
+  background-color: #001725;
+  border: 1px solid #154966;
+  color: #CCC;
+  margin-bottom: -1px;
+}
+.active-tab-button {
+  background-color: #154966;
+  border: 1px solid #001725;
+  border-bottom: 0px;
+}
+.inactive-tab-button {
+  background-color: #001725;
+  border: 1px solid #154966;
+}
+*:focus {
+  outline-color: #CCC !important;
+}
+
+/*
+ * Login page styles
+ */
+
+.ribbon-outer {
+  width: 100%;
+  max-height: 250px;
+  background-color: #154966;
+  padding: 20px;
+  position: absolute;
+  top: 0;
+  bottom:0;
+  left: 0;
+  right: 0;
+  margin: auto;
+}
+.ribbon-inner {
+  max-width: 500px;
+}
+.ribbon-row {
+  padding-bottom: 12px;
+}
+
+/*
+ * Button styles
+ */
+a {
+  background-color: #154966;
+  padding: 5px;
+  margin: 5px;
+  text-align: center;
+}
+
+
+/*
+ * Form styles
+ */
+.form {
+  background-color: #154966;
+  margin: 5px;
+  padding: 5px;
+}
+table {
+  border: 1px solid #001725;
+  padding: 0px !important;
+}
+th {
+  background-color: #001725;
+  margin: 10px;
+  padding: 10px;
+  border-right: 2px solid #154966;
+}
+tr th:last-child {
+  border-right: 1px solid #001725;
+}
+td {
+  padding: 5px;
+  margin: 5px;
+}
+
+
+/*
+ * Credential Styles
+ */
+.header {
+  width: 100%;
+  padding-left: 20px;
+  padding-right: 20px;
+  padding-bottom: 20px;
+  background-color: #001725;
+}
+.full-width {
+  width: 100%;
+}
+.modal-row {
+  margin-bottom: 10px;
+}
+.modal-body {
+  margin-right: 5px;
+}

@@ -1,0 +1,8 @@
+node_modules
+Scripts
+tcl
+Lib
+Include
+pip-selfcheck.json
+AuthCode
+*.db
