@@ -107,6 +107,15 @@ def users_session_validate():
 	else:
 		return was403()
 
+@app.route('/api/v1/users/get_username', methods=['GET'])
+def users_get_username():
+	session_id = request.headers["auth-id"]
+	user = get_user_by_session(session_id)
+	if (user != None):
+		return user.username
+	else:
+		return was403()
+
 #######################
 ## Credential Routes ##
 #######################

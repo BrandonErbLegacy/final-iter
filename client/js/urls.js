@@ -7,6 +7,7 @@ module.exports = {
       authenticate: base+"users/authenticate",
       update:base+"users/update",
       session: base+"users/session",
+      get_username: base+"users/get_username",
     },
     credentials: {
       create: base+"credentials/create",
