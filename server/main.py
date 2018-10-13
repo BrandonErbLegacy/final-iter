@@ -399,6 +399,7 @@ def notebooks_save():
 				notebook.title = titleReturned
 
 			pages = get_value_or_blank(request, "pages")
+			created_pages = []
 			if (len(pages) > 0):
 				pages = json.loads(pages)
 				for page in pages:
@@ -433,7 +434,11 @@ def notebooks_save():
 						notepageAccess.type = "NOTEBOOK_PAGE"
 						main_session.add(notepage)
 						main_session.add(notepageAccess)
+						created_pages.append(notepage)
 			main_session.commit()
+
+			if (len(created_pages) != 0):
+				return json.dumps(created_pages, cls=AlchemyEncoder)
 			return "Success"
 		else:
 			#Notebook is new. Create it.

@@ -164,12 +164,15 @@ function editor(){
         alert("Failed to create a new page", reason);
       },
       success: function(response){
-        var data = response.body;
+        var data = JSON.parse(response.body);
         $("#create-page-modal").modal("toggle");
         if ($("#modal-id").val() != ""){
           tab_manager.rename_current_tab($("#modal-title").val());
         } else {
-          create_new_editor($("#modal-title").val(), "", true, {id: data});
+          for (i in data){
+            var cred = data[i]
+            create_new_editor($("#modal-title").val(), "", true, cred);
+          }
         }
         $("#modal-id").val("");
       },
