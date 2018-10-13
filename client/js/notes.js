@@ -34,6 +34,11 @@ function landing(){
       create_new_notebook(title, desc);
     }
   });
+
+  var win = remote.getCurrentWindow();
+  win.on('focus', () =>{
+    table_manager.update();
+  });
 }
 
 function create_new_notebook(title, desc){
