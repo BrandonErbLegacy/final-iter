@@ -404,7 +404,7 @@ def notebooks_save():
 				for page in pages:
 					pageJson = page
 					try:
-						page = main_session.query(NotebookPage).filter(NotebookPage.id == page["id"]).filter(NotebookPage.notebook_id == notebook.id).first()
+						page = main_session.query(NotebookPage).filter(NotebookPage.id == pageJson["id"]).filter(NotebookPage.notebook_id == notebook.id).first()
 					except KeyError:
 						page = None
 					if (page != None):
@@ -413,7 +413,8 @@ def notebooks_save():
 						for page_access in matching_pages_access:
 							if page_access.userID == user.id:
 								# You have all the correct perms to update this page.
-								page.content = pageJson["content"]
+								if ("content" in pageJson.keys()):
+									page.content = pageJson["content"]
 								page.title = pageJson["title"]
 					else:
 						noteAccessID = new_uuid()

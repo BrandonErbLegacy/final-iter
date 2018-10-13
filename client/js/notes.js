@@ -132,10 +132,20 @@ function editor(){
   $("#modal-save").click(function(){
     id = id.replace("#", "");
 
-    session_data.auth_request({
-      url: urls.paths.notes.notebooks.save,
-      method: "POST",
-      data: {
+    page_id = $("#modal-id").val()
+
+    if (page_id != ""){
+      data = {
+        notebookID: id,
+        pages: JSON.stringify([
+            {
+              id: page_id,
+              title: $("#modal-title").val(),
+            },
+        ]),
+      }
+    } else {
+      data = {
         notebookID: id,
         pages: JSON.stringify([
             {
@@ -143,7 +153,13 @@ function editor(){
               content: ""
             },
         ]),
-      },
+      }
+    }
+
+    session_data.auth_request({
+      url: urls.paths.notes.notebooks.save,
+      method: "POST",
+      data: data,
       fail: function(reason){
         alert("Failed to create a new page", reason);
       },
@@ -151,6 +167,7 @@ function editor(){
         var data = response.body;
         $("#create-page-modal").modal("toggle");
         create_new_editor($("#modal-title").val(), "", true, {id: data});
+        $("#modal-id").val("");
       },
     })
   });
@@ -163,10 +180,15 @@ function editor(){
   });
 
   tab_manager.set_on_tab_right_click(function(id){
-    var page_id = $("#li"+id+" a").attr("data-target");
+    var page_id = $("#li"+id+" a").attr("data-target-note");
     var context_menu = new Menu()
     context_menu.append(new MenuItem({label: 'New page', click() {
-
+      console.log("Trying new ");
+      $("#create-page-modal").modal("toggle");
+    }}));
+    context_menu.append(new MenuItem({label: 'Rename page', click(){
+      $("#modal-id").val(page_id);
+      $("#create-page-modal").modal("toggle");
     }}));
     context_menu.append(new MenuItem({type: 'separator'}))
     context_menu.append(new MenuItem({label: 'Delete page', click() {
@@ -187,6 +209,7 @@ function editor(){
       var creds = JSON.parse(response.body);
       for (var cred in creds){
         var info = creds[cred];
+        console.log(info);
         if (cred == 0){
           create_new_editor(info.title, info.content, true, info);
         } else {
@@ -204,7 +227,7 @@ function create_new_editor(title, contents, active, object){
   } else {
     var id = tab_manager.create_new_tab("New Tab", active);
   }
-  $("#li"+id+" a").attr("data-target", object["id"]); // Insert the note page ID
+  $("#li"+id+" a").attr("data-target-note", object["id"]); // Insert the note page ID
   try {
     contents = JSON.parse(contents.trim());
   }
