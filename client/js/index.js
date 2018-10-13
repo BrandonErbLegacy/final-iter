@@ -7,7 +7,7 @@ module.exports = {
 }
 function init(){
   session_data.auth_request({
-    url: urls.paths.users.get_username
+    url: urls.paths.users.get_username,
     method: "GET",
     data: {
 
