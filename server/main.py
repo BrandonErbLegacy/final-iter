@@ -395,9 +395,11 @@ def notebooks_save():
 					can_access = True
 					break
 			titleReturned = get_value_or_blank(request, "title")
+			descReturned = get_value_or_blank(request, "desc")
 			if (titleReturned != ""):
 				notebook.title = titleReturned
-
+			if (descReturned != ""):
+				notebook.desc = descReturned
 			pages = get_value_or_blank(request, "pages")
 			created_pages = []
 			if (len(pages) > 0):
