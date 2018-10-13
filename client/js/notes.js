@@ -166,7 +166,11 @@ function editor(){
       success: function(response){
         var data = response.body;
         $("#create-page-modal").modal("toggle");
-        create_new_editor($("#modal-title").val(), "", true, {id: data});
+        if ($("#modal-id").val() != ""){
+          tab_manager.rename_current_tab($("#modal-title").val());
+        } else {
+          create_new_editor($("#modal-title").val(), "", true, {id: data});
+        }
         $("#modal-id").val("");
       },
     })

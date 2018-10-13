@@ -7,6 +7,7 @@ module.exports = {
   set_on_tab_right_click: set_on_tab_right_click,
   set_no_tabs_event: set_no_tabs_event,
   validate_tab_count: validate_tab_count,
+  rename_current_tab: rename_current_tab,
 }
 
 const tab_main_html = "<div class='bs-component' id='tab-manager-host'></div>";
@@ -44,6 +45,10 @@ function init(selector, use_inital){
     var initial_tab = create_new_tab("New Tab", true);
   }
 }
+function rename_current_tab(text){
+  $('.nav-tabs a.active').text(text);
+}
+
 function set_on_tab_right_click(func){
   right_click_action = func;
 }
