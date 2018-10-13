@@ -1,0 +1,24 @@
+.closeTab {
+  background-color: inherit;
+  display: relative;
+  border: none;
+  color: #CCC;
+  left: 20px;
+}
+.empty-tab-list {
+  width: 300px;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  /* bring your own prefixes */
+  transform: translate(-50%, -50%);
+  border: 1px solid #333;
+  border-radius: 3px;
+  padding: 20px;
+  text-align: center;
+}
+.empty-tab-list-action {
+  border-top: 1px solid #333;
+  margin-top: 20px;
+  padding-top: 20px;
+}

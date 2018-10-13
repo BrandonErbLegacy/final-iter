@@ -3,22 +3,6 @@ const urls = require("./urls");
 const request = require('request');
 
 function init(){
-  //Validate server says auth_code is ok
-  if (session_data.auth_code.code != undefined) {
-    var options = {
-      url: urls.paths.users.session,
-      method: "POST",
-      headers: {
-        "auth-id": session_data.auth_code.code,
-      },
-    }
-
-    request(options, function(err, response, body){
-      if (!err && response.statusCode == 200) {
-        document.location = urls.paths.redirects.login_success;
-      }
-    });
-  }
   $("#login-button").click(do_login);
 }
 

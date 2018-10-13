@@ -18,6 +18,20 @@ module.exports = {
       get_some: base+"credentials/all",
       search: base+"credentials/all/search",
     },
+    notes: {
+      pages: {
+        update: base+"notes/pages/update",
+        delete: base+"notes/pages/delete",
+        get_by_notebook: base+"notes/pages/by_notebook",
+      },
+      notebooks: {
+        save: base+"notes/notebook/save",
+        delete: base+"notes/notebooks/delete",
+        get_some: base+"notes/notebook/all",
+
+        search: base+"notes/notebook/search"
+      }
+    },
 
     redirects: {
       login_success: "index.html"

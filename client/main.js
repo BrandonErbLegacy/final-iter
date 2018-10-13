@@ -1,6 +1,8 @@
 // Modules to control application life and create native browser window
 const {app, BrowserWindow} = require('electron')
-
+const session_data = require('./js/session_data');
+const urls = require("./js/urls");
+const request = require('request');
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow
@@ -9,8 +11,26 @@ function createWindow () {
   // Create the browser window.
   mainWindow = new BrowserWindow({width: 800, height: 600})
 
-  // and load the index.html of the app.
-  mainWindow.loadFile('login.html')
+  //Load login.html if not already authenticated. Otherwise load login_success url
+  if (session_data.auth_code.code != undefined) {
+    var options = {
+      url: urls.paths.users.session,
+      method: "POST",
+      headers: {
+        "auth-id": session_data.auth_code.code,
+      },
+    }
+
+    request(options, function(err, response, body){
+      if (!err && response.statusCode == 200) {
+        mainWindow.loadFile(urls.paths.redirects.login_success)
+      } else {
+        mainWindow.loadFile("login.html")
+      }
+    });
+  } else {
+    mainWindow.loadFile("login.html")
+  }
 
   // Open the DevTools.
   // mainWindow.webContents.openDevTools()

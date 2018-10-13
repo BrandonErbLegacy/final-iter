@@ -6,6 +6,7 @@ from sqlalchemy import ForeignKey, Column, Integer, String, DateTime
 from sqlalchemy.ext.declarative import DeclarativeMeta
 from sqlalchemy.orm import load_only
 from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
 
 from threading import Thread
 from flask import Flask, request
@@ -54,7 +55,7 @@ def users_authenticate():
 		main_session.commit()
 		return session.id
 	else:
-		return "Invalid credentials", 403
+		return was403()
 
 	return ("%s : %s"%(hashed_password, matching_user.password))
 
@@ -94,7 +95,7 @@ def users_update():
 
 		main_session.commit()
 	else:
-		return "Invalid session.", 403
+		return was403()
 
 @app.route('/api/v1/users/session', methods=['POST'])
 def users_session_validate():
@@ -104,7 +105,7 @@ def users_session_validate():
 	if session_obj != None:
 		return "OK", 200
 	else:
-		return "Invalid session.", 403
+		return was403()
 
 #######################
 ## Credential Routes ##
@@ -127,7 +128,7 @@ def credentials_get_specific(cred_id):
 		credPerm = main_session.query(CredentialPermission).filter(CredentialPermission.credentialID == cred_id).filter(CredentialPermission.userID == user.id).first()
 		return json.dumps(credPerm.credential, cls=AlchemyEncoder)
 	else:
-		return "Invalid session.", 403
+		return was403()
 
 @app.route('/api/v1/credentials/create', methods=['POST'])
 def credentials_create():
@@ -136,11 +137,11 @@ def credentials_create():
 	if (user != None):
 		cred = Credential()
 		cred.id = new_uuid()
-		cred.username = "" if request.form.get('username') is None else request.form.get('username')
-		cred.password = "" if request.form.get('password') is None else request.form.get('password')
-		cred.target = "" if request.form.get('target') is None else request.form.get('target')
-		cred.notes = "" if request.form.get('notes') is None else request.form.get('notes')
-		cred.displayName = "" if request.form.get('displayName') is None else request.form.get('displayName')
+		cred.username = get_value_or_blank(request, "username")
+		cred.password = get_value_or_blank(request, "password")
+		cred.target = get_value_or_blank(request, "target")
+		cred.notes = get_value_or_blank(request, "notes")
+		cred.displayName = get_value_or_blank(request, "displayName")
 		cred.permissionID = new_uuid()
 		cred.createdByID = user.id
 
@@ -155,7 +156,7 @@ def credentials_create():
 		main_session.commit()
 		return cred.id
 	else:
-		return "Invalid session.", 403
+		return was403()
 
 @app.route('/api/v1/credentials/update', methods=['POST'])
 def credentials_update():
@@ -166,18 +167,18 @@ def credentials_update():
 		credPerm = main_session.query(CredentialPermission).filter(CredentialPermission.credentialID == credentialID).filter(CredentialPermission.userID == user.id).first()
 		if (credPerm != None):
 			cred = credPerm.credential
-			cred.username = request.form.get('username')
-			cred.password = request.form.get('password')
-			cred.target = request.form.get('target')
-			cred.notes = request.form.get('notes')
-			cred.displayName = request.form.get('displayName')
+			cred.username = get_value_or_blank(request, "username")
+			cred.password = get_value_or_blank(request, "password")
+			cred.target = get_value_or_blank(request, "target")
+			cred.notes = get_value_or_blank(request, "notes")
+			cred.displayName = get_value_or_blank(request, "displayName")
 
 			main_session.commit()
 			return cred.id
 		else:
-			return "Invalid credential ID", 500
+			return was500()
 	else:
-		return "Invalid session.", 403
+		return was403()
 
 @app.route('/api/v1/credentials/delete', methods=['POST'])
 def credentials_delete():
@@ -191,14 +192,14 @@ def credentials_delete():
 			main_session.commit()
 			return "Success"
 		else:
-			return "Invalid credential ID", 500
+			return was500()
 	else:
-		return "Invalid session.", 403
+		return was403()
 
 @app.route('/api/v1/credentials/all/<int:page_num>&<int:limit>', methods=['GET'])
 def credentials_get_page(page_num, limit):
-	if (limit > 50):
-		return "Invalid limit", 500
+	if (limit > MAX_PAGINATION_SIZE):
+		return was500("Invalid page limit")
 	session_id = request.headers["auth-id"]
 	user = get_user_by_session(session_id)
 	if (user != None):
@@ -211,14 +212,14 @@ def credentials_get_page(page_num, limit):
 		returnItem = {"count":item_count, "data":returnList}
 		return json.dumps(returnItem, cls=PswdSafeAlchemyEncoder)
 	else:
-		return "Invalid session.", 403
+		return was403()
 
 @app.route('/api/v1/credentials/all/search/<string:query>/<int:page_num>&<int:limit>', methods=['GET'])
 def credentials_get_query_page(query, page_num, limit):
 	##Inefficient search algo
 	##needs to update
-	if (limit > 50):
-		return "Invalid limit", 500
+	if (limit > MAX_PAGINATION_SIZE):
+		return was500("Invalid page limit")
 	session_id = request.headers["auth-id"]
 	user = get_user_by_session(session_id)
 	if (user != None):
@@ -244,7 +245,238 @@ def credentials_get_query_page(query, page_num, limit):
 		returnItem = {"count":len(returnList), "data":sub_query}
 		return json.dumps(returnItem, cls=PswdSafeAlchemyEncoder)
 	else:
-		return "Invalid session.", 403
+		return was403()
+
+
+
+##################
+## Notes Routes ##
+##################
+
+@app.route('/api/v1/notes/notebooks/delete', methods=['POST'])
+def notebooks_delete():
+	session_id = request.headers["auth-id"]
+	user = get_user_by_session(session_id)
+	if (user != None):
+		notebookID = get_value_or_blank(request, "notebookID")
+		notebook = main_session.query(Notebook).filter(Notebook.id == notebookID).one()
+		if notebook != None:
+			permission = main_session.query(NoteAccess).filter(NoteAccess.permissionID == notebook.permissionID).filter(NoteAccess.userID == user.id).one()
+			if permission != None:
+				pages = main_session.query(NotebookPage).filter(NotebookPage.notebook_id == notebook.id).all()
+				for page in pages:
+					local_creds = main_session.query(NoteAccess).filter(NoteAccess.permissionID == page.permissionID).all()
+					for cred in local_creds:
+						main_session.delete(cred)
+					main_session.delete(page)
+
+				creds = main_session.query(NoteAccess).filter(NoteAccess.permissionID == notebook.permissionID).all()
+				for cred in creds:
+					main_session.delete(cred)
+				main_session.delete(notebook)
+				main_session.commit()
+				return "Success"
+			else:
+				return was403()
+		else:
+			return was500()
+	else:
+		return was403()
+@app.route('/api/v1/notes/pages/delete', methods=['POST'])
+def notepage_delete():
+	session_id = request.headers["auth-id"]
+	user = get_user_by_session(session_id)
+	if (user != None):
+		pageID = get_value_or_blank(request, "pageID")
+		page = main_session.query(NotebookPage).filter(NotebookPage.id == pageID).one()
+		if page != None:
+			permission = main_session.query(NoteAccess).filter(NoteAccess.permissionID == page.permissionID).filter(NoteAccess.userID == user.id).one()
+			if permission != None:
+				main_session.delete(page)
+				all_related_perms = main_session.query(NoteAccess).filter(NoteAccess.permissionID == page.permissionID).all()
+				for perm in all_related_perms:
+					main_session.delete(perm)
+				main_session.commit()
+				return "Success"
+			else:
+				return was403()
+		else:
+			return was500()
+	else:
+		return was403()
+
+@app.route('/api/v1/notes/pages/update', methods=['POST'])
+def notepage_save():
+	session_id = request.headers["auth-id"]
+	user = get_user_by_session(session_id)
+	if (user != None):
+		id = get_value_or_blank(request, "id")
+		title = get_value_or_blank(request, "title")
+		contents = get_value_or_blank(request, "content")
+
+		notebookPage = main_session.query(NotebookPage).filter(NotebookPage.id == id).one()
+		if (notebookPage != None):
+			noteAccess = main_session.query(NoteAccess).filter(NoteAccess.userID == user.id).filter(NoteAccess.permissionID == notebookPage.permissionID).one()
+			if (noteAccess != None):
+				print(notebookPage.content, contents)
+				notebookPage.title = title
+				notebookPage.content = contents
+				main_session.commit()
+				return "Success"
+			else:
+				return was500()
+		else:
+			return was500()
+	else:
+		return was403();
+
+@app.route('/api/v1/notes/notebook/all/<int:page_num>&<int:limit>', methods=['GET'])
+def notebooks_get_all(page_num, limit):
+	if (limit > MAX_PAGINATION_SIZE):
+		return was500("Invalid page limit")
+	session_id = request.headers["auth-id"]
+	user = get_user_by_session(session_id)
+	if (user != None):
+		values_to_return = []
+		permissions = main_session.query(NoteAccess).filter(NoteAccess.userID == user.id).filter(NoteAccess.type == "NOTEBOOK").all()
+		for item in permissions:
+			notebook = main_session.query(Notebook).filter(Notebook.permissionID == item.permissionID).one()
+			values_to_return.append(notebook)
+		sub_query = values_to_return[(page_num*limit):((page_num*limit)+limit)]
+		returnVal = {"count":len(values_to_return), "data":sub_query}
+		return json.dumps(returnVal, cls=AlchemyEncoder)
+	return was403()
+
+@app.route('/api/v1/notes/pages/by_notebook', methods=['POST'])
+def notebooks_get_by_notebook():
+	session_id = request.headers["auth-id"]
+	user = get_user_by_session(session_id)
+	if (user != None):
+		values_to_return = []
+		notebook_id = get_value_or_blank(request, "notebookID")
+		if ("#" in notebook_id):
+			notebook_id = notebook_id.replace("#", "")
+		notebook = main_session.query(Notebook).filter(Notebook.id == notebook_id).first()
+		if notebook != None:
+			access_perms = main_session.query(NoteAccess).filter(NoteAccess.permissionID == notebook.permissionID).all()
+			can_access_notebook = False
+			for perm in access_perms:
+				if perm.userID == user.id:
+					can_access_notebook = True
+					break
+			if can_access_notebook:
+				pages = main_session.query(NotebookPage).filter(NotebookPage.notebook_id == notebook.id).all()
+				for page in pages:
+					page_perms = main_session.query(NoteAccess).filter(NoteAccess.permissionID == page.permissionID).all()
+					for perm in page_perms:
+						if perm.userID == user.id:
+							values_to_return.append(page)
+				return json.dumps(values_to_return, cls=AlchemyEncoder)
+			else:
+				return was403()
+		else:
+			return was500()
+
+
+# Add/Update page(s). Update notebook name. Create new notebook.
+@app.route('/api/v1/notes/notebook/save', methods=['POST'])
+def notebooks_save():
+	session_id = request.headers["auth-id"]
+	user = get_user_by_session(session_id)
+	if (user != None):
+		notebook_id = get_value_or_blank(request, "notebookID")
+		if (notebook_id != ""):
+			#Notebook exists. Do updates
+			notebook = main_session.query(Notebook).filter(Notebook.id == notebook_id).first()
+			notebookPermissions = main_session.query(NoteAccess).filter(NoteAccess.permissionID == Notebook.permissionID).all()
+			can_access = False
+			for perm in notebookPermissions:
+				if (perm.userID == user.id):
+					can_access = True
+					break
+			titleReturned = get_value_or_blank(request, "title")
+			if (titleReturned != ""):
+				notebook.title = titleReturned
+
+			pages = get_value_or_blank(request, "pages")
+			if (len(pages) > 0):
+				pages = json.loads(pages)
+				for page in pages:
+					pageJson = page
+					try:
+						page = main_session.query(NotebookPage).filter(NotebookPage.id == page["id"]).filter(NotebookPage.notebook_id == notebook.id).first()
+					except KeyError:
+						page = None
+					if (page != None):
+						#Page exists. Check perms and update it.
+						matching_pages_access = main_session.query(NoteAccess).filter(NoteAccess.permissionID == page.permissionID).all()
+						for page_access in matching_pages_access:
+							if page_access.userID == user.id:
+								# You have all the correct perms to update this page.
+								page.content = pageJson["content"]
+								page.title = pageJson["title"]
+					else:
+						noteAccessID = new_uuid()
+						notepage = NotebookPage()
+						notepage.id = new_uuid()
+						notepage.createdByID = user.id
+						notepage.permissionID = noteAccessID
+						notepage.notebook_id = notebook.id
+						notepage.content = pageJson["content"]
+						notepage.title = pageJson["title"]
+
+						notepageAccess = NoteAccess()
+						notepageAccess.id = new_uuid()
+						notepageAccess.userID = user.id
+						notepageAccess.permissionID = noteAccessID
+						notepageAccess.type = "NOTEBOOK_PAGE"
+						main_session.add(notepage)
+						main_session.add(notepageAccess)
+			main_session.commit()
+			return "Success"
+		else:
+			#Notebook is new. Create it.
+			notebookPermissionID = new_uuid()
+			noteAccessID = new_uuid()
+
+			notebook = Notebook()
+			notebook.id = new_uuid()
+			notebook.createdByID = user.id
+			notebook.permissionID = notebookPermissionID
+			notebook.title = get_value_or_blank(request, "title")
+			notebook.desc = get_value_or_blank(request, "desc")
+
+			notebookAccess = NoteAccess()
+			notebookAccess.id = new_uuid()
+			notebookAccess.userID = user.id
+			notebookAccess.permissionID = notebookPermissionID
+			notebookAccess.type = "NOTEBOOK"
+
+			notepage = NotebookPage()
+			notepage.id = new_uuid()
+			notepage.notebook_id = notebook.id
+			notepage.createdByID = user.id
+			notepage.permissionID = noteAccessID
+			notepage.content = ""
+			notepage.title = "New notebook"
+
+			notepageAccess = NoteAccess()
+			notepageAccess.id = new_uuid()
+			notepageAccess.userID = user.id
+			notepageAccess.permissionID = noteAccessID
+			notepageAccess.type = "NOTEBOOK_PAGE"
+
+			main_session.add(notebook)
+			main_session.add(notebookAccess)
+			main_session.add(notepage)
+			main_session.add(notepageAccess)
+
+			main_session.commit()
+
+			return notebook.id
+	else:
+		return was403()
+
 
 #######################
 ## Utility Functions ##
@@ -258,6 +490,13 @@ def get_user_by_session(session):
 		user = main_session.query(User).filter(User.id == matching_session.userID).first()
 		return user
 	return None
+
+def get_value_or_blank(request, value, type="POST"):
+	#Returns either the value pulled from a request. Or defaults to nothing
+	if (type == "POST"):
+		return "" if request.form.get(value) is None else request.form.get(value)
+	else:
+		raise NotImplemented
 
 class AlchemyEncoder(json.JSONEncoder):
 	def default(self, obj):
@@ -292,6 +531,17 @@ class PswdSafeAlchemyEncoder(json.JSONEncoder):
 	        return fields
 
 	    return json.JSONEncoder.default(self, obj)
+
+
+#######################
+## Default responses ##
+#######################
+
+def was403(reason="Invalid permission"):
+	return (reason, 403)
+
+def was500(reason="Invalid data supplied"):
+	return (reason, 500)
 
 ######################
 ## Core App Objects ##
@@ -365,36 +615,41 @@ class CredentialPermission(DatabaseBase):
 ## Note Related Objects ##
 ##########################
 class Notebook(DatabaseBase):
-	__tablename__ = "Note_Manager_Plugin_Notes"
+	__tablename__ = "Notes_Notebooks"
 
 	id = Column(String(36), primary_key=True)
 	createdByID = Column(String(36))
 	permissionID = Column(String(36))
 	title = Column(String)
+	desc = Column(String)
+	time_created = Column(DateTime(timezone=True), server_default=func.now())
+	time_updated = Column(DateTime(timezone=True), onupdate=func.now())
+	#editing_user = Column(String())
 
 class NotebookPage(DatabaseBase):
-	__tablename__ = "Note_Manager_Plugin_Notebook_Pages"
+	__tablename__ = "Notes_Pages"
 
 	id = Column(String(36), primary_key=True)
 	notebook_id = Column(String(36))
 	createdByID = Column(String(36))
 	permissionID = Column(String(36))
 	content = Column(String)
-	title = Column(String(5))
+	title = Column(String(20))
 
 class NoteCategory_Note_Relation(DatabaseBase):
-	__tablename__ = "Note_Manager_Plugin_Note_Category_relations"
+	__tablename__ = "Notes_CategoryRelations"
 
 	id = Column(String(36), primary_key=True)
 	category_id = Column(String(36))
 	note_id = Column(String(36))
 
 class NoteAccess(DatabaseBase):
-	__tablename__ = "Note_Manager_Plugin_Note_Access"
+	__tablename__ = "Notes_Access"
 
 	id = Column(String(36), primary_key=True)
 	userID = Column(String(36))
 	permissionID = Column(String(36))
+	type = Column(String(20))
 
 
 #######################

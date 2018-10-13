@@ -98,7 +98,7 @@ function fetch_search_data(page, query){
     url: table_data_struct.data_points.search_fetch+"/"+query+"/"+page+"&"+table_data_struct.limit_per_page,
     method: "GET",
     fail: function(reason){
-      alert("Failed to retrieve paged credentials");
+      alert("Failed to retrieve paged results");
       console.log(reason);
     },
     success: function(response){
@@ -120,7 +120,7 @@ function fetch_paged_data(page){
     url: table_data_struct.data_points.normal_fetch+"/"+page+"&"+table_data_struct.limit_per_page,
     method: "GET",
     fail: function(reason){
-      alert("Failed to retrieve paged credentials");
+      alert("Failed to retrieve paged results");
       console.log(reason);
     },
     success: function(response){
