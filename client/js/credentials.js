@@ -1,6 +1,7 @@
 const urls = require("./urls");
 const session_data = require("./session_data");
 const table_manager = require("./tablesv2");
+const {clipboard} = require('electron');
 
 module.exports = {
   initialize_creds: init,
@@ -13,6 +14,9 @@ function init(){
   var modal_username = $("#modal-username");
   var modal_password = $("#modal-password");
   var modal_target = $("#modal-target");
+
+  var modal_copy_username_button = $("#modal-copy-username-button");
+  var modal_copy_password_button = $("#modal-copy-password-button");
   $("#modal-save").click(function(){
     cred = {};
     cred.displayName = modal_display_name.val();
@@ -22,6 +26,22 @@ function init(){
     cred_update(cred);
   });
 
+  //Bind modal password to show on hover
+  modal_password.hover(function(){
+      modal_password.attr("type", "text");
+    }, function(){
+      modal_password.attr("type", "password");
+  });
+
+  modal_copy_username_button.click(function(){
+    clipboard.writeText(modal_username.val());
+    return false;
+  });
+  modal_copy_password_button.click(function(){
+    clipboard.writeText(modal_password.val());
+    return false;
+  });
+
   table_manager.init("all-creds-table", urls.paths.credentials.get_some, urls.paths.credentials.search);
   table_manager.update();
 
@@ -29,6 +49,7 @@ function init(){
     view_cred(data["id"]);
   });
 }
+
 
 function view_cred(guid){
   var modal_id = $("#modal-id");
