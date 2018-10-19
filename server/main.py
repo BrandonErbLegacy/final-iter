@@ -59,6 +59,19 @@ def users_authenticate():
 
 	return ("%s : %s"%(hashed_password, matching_user.password))
 
+@app.route('/api/v1/users/logout', methods=['POST'])
+def users_logout():
+	session_id = request.headers["auth-id"]
+	user = get_user_by_session(session_id)
+	if (user != None):
+		sessions = main_session.query(Session).filter(Session.userID == user.id).all()
+		for session in sessions:
+			main_session.delete(session)
+		main_session.commit()
+		return "Success"
+	else:
+		return was403()
+
 @app.route('/api/v1/users/create', methods=['POST'])
 def users_create():
 	username = request.form.get('username')

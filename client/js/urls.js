@@ -3,6 +3,7 @@ module.exports = {
   paths: {
     base: base,
     users: {
+      logout: base+"users/logout",
       create: base+"users/create",
       authenticate: base+"users/authenticate",
       update:base+"users/update",
@@ -35,7 +36,8 @@ module.exports = {
     },
 
     redirects: {
-      login_success: "index.html"
+      login_success: "index.html",
+      logout_success: "login.html",
     }
   }
 }
