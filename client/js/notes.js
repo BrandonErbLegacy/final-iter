@@ -14,7 +14,7 @@ module.exports = {
 }
 
 function landing(){
-  table_manager.init("all-notes-table", urls.paths.notes.notebooks.get_some, urls.paths.notes.search);
+  table_manager.init("all-notes-table", urls.paths.notes.notebooks.get_some, urls.paths.notes.notebooks.search);
   table_manager.update();
 
   table_manager.set.row_left_click(function(data){

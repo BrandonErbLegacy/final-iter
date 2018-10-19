@@ -235,19 +235,19 @@ def credentials_get_query_page(query, page_num, limit):
 		credentials_with_permission = main_session.query(CredentialPermission).filter(CredentialPermission.userID == user.id).order_by(CredentialPermission.id.desc())
 		returnList = []
 		for credPerm in credentials_with_permission:
-			if (query in credPerm.credential.username):
+			if (query.lower() in credPerm.credential.username.lower()):
 				returnList.append(credPerm.credential)
 				continue
-			elif (query in credPerm.credential.password):
+			elif (query.lower() in credPerm.credential.password.lower()):
 				returnList.append(credPerm.credential)
 				continue
-			elif (query in credPerm.credential.notes):
+			elif (query.lower() in credPerm.credential.notes.lower()):
 				returnList.append(credPerm.credential)
 				continue
-			elif (query in credPerm.credential.target):
+			elif (query.lower() in credPerm.credential.target.lower()):
 				returnList.append(credPerm.credential)
 				continue
-			elif (query in credPerm.credential.displayName):
+			elif (query.lower() in credPerm.credential.displayName.lower()):
 				returnList.append(credPerm.credential)
 				continue
 		sub_query = returnList[(page_num*limit):((page_num*limit)+limit)]
@@ -494,6 +494,26 @@ def notebooks_save():
 	else:
 		return was403()
 
+@app.route('/api/v1/notes/notebook/search/<string:query>/<int:page_num>&<int:limit>', methods=['GET'])
+def notebooks_search(query, page_num, limit):
+	session_id = request.headers["auth-id"]
+	user = get_user_by_session(session_id)
+	if (user != None):
+		perms = main_session.query(NoteAccess).filter(NoteAccess.userID == user.id).filter(NoteAccess.type == "NOTEBOOK").all()
+		notebooks = []
+		for perm in perms:
+			print(perm.permissionID)
+			notebook = main_session.query(Notebook).filter(Notebook.permissionID == perm.permissionID).one()
+			#notebook = main_session.query(Notebook).filter(Notebook.permissionID == perm.permissionID).one()
+			if query.lower() in notebook.title.lower():
+				notebooks.append(notebook)
+			elif query.lower() in notebook.desc.lower():
+				notebooks.append(notebook)
+		sub_query = notebooks[(page_num*limit):((page_num*limit)+limit)]
+		returnItem = {"count":len(notebooks), "data":sub_query}
+		return json.dumps(returnItem, cls=AlchemyEncoder)
+	else:
+		return was403()
 
 #######################
 ## Utility Functions ##
