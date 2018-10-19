@@ -11,6 +11,39 @@
 
   </head>
   <body>
+    <nav class="navbar navbar-expand-md navbar-light bg-light">
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="navbar-brand dropdown show">
+        <a class="btn btn-secondary dropdown-toggle" href="#" role="button" id="username_settings_button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          ~username~
+        </a>
+
+        <ul class="dropdown-menu" aria-labelledby="username_settings_button">
+          <li><a href="#" class="dropdown-item">Settings</a></li>
+          <li><a href="#" class="dropdown-item">User Settings</a></li>
+          <li><a href="#" class="dropdown-item">Session info</a></li>
+          <li role="separator" class="dropdown-divider"></li>
+          <li><a href="#" class="dropdown-item" id="logout-button">Log out</a></li>
+        </ul>
+      </div>
+
+      <div class="collapse navbar-collapse" id="navbar">
+        <ul class="navbar-nav mr-auto mt-2 mt-md-0">
+          <li class="nav-item">
+            <a class="nav-link" href="index.html">Dashboard</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="credentials.html">Credentials</a>
+          </li>
+          <li class="nav-item active">
+            <a class="nav-link" href="notes_landing.html">Notes</a>
+          </li>
+
+        </ul>
+      </div>
+    </nav>
     <div class="container">
       <div class="header">
         <h1>
